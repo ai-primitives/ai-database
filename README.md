@@ -1,68 +1,72 @@
-# @ai-primitives/package-template
+# ai-database
 
-[![npm version](https://badge.fury.io/js/%40ai-primitives%2Fpackage-template.svg)](https://www.npmjs.com/package/@ai-primitives/package-template)
+[![npm version](https://badge.fury.io/js/ai-database.svg)](https://badge.fury.io/js/ai-database)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern TypeScript package template with Vitest, Prettier, ESLint, and semantic versioning.
+AI-native database abstraction with hybrid vector search capabilities for synthetic data, tool-calling, and RAG applications.
 
 ## Features
-
-- 🚀 TypeScript for type safety and modern JavaScript features
-- ⚡️ Vitest for fast, modern testing
-- 🎨 Prettier for consistent code formatting
-- 🔍 ESLint for code quality
-- 📦 Semantic versioning with automated releases
-- 🔄 GitHub Actions for CI/CD
+- Hybrid vector search optimized for AI workloads
+- Synthetic data generation and management
+- Tool-calling interface compatible with major AI SDKs
+- Built-in support for RAG (Retrieval Augmented Generation)
+- Seamless integration with mdxdb for document storage
 
 ## Installation
-
 ```bash
-pnpm add @ai-primitives/package-template
+npm install ai-database
+# or
+pnpm add ai-database
+# or
+yarn add ai-database
 ```
 
-## Usage
+## Quick Start
+```typescript
+import { createDatabase } from 'ai-database'
+
+// Initialize database with vector search capabilities
+const db = createDatabase({
+  namespace: 'my-app',
+  vectorSearch: true
+})
+
+// Store documents with embeddings
+await db.collection('documents').store({
+  content: 'Example document',
+  embeddings: [0.1, 0.2, 0.3]
+})
+
+// Perform hybrid search
+const results = await db.collection('documents').search({
+  query: 'example',
+  vector: [0.1, 0.2, 0.3],
+  threshold: 0.8
+})
+```
+
+## Tool Integration
+ai-database exports AI-compatible tools that work with any LLM supporting function calling:
 
 ```typescript
-import { add } from '@ai-primitives/package-template'
+import { tools } from 'ai-database'
 
-const result = add(1, 2) // returns 3
+// Use with any AI SDK (Vercel AI, LangChain, etc)
+const searchTool = tools.vectorSearch({
+  collection: 'documents',
+  namespace: 'my-app'
+})
 ```
 
-## Development
+## Integration with AI Primitives
+ai-database is designed to work seamlessly with other AI Primitives packages:
 
-```bash
-# Install dependencies
-pnpm install
+- **ai-functions**: Provides database operations as callable AI functions
+- **ai-workflows**: Enables database integration in AI workflow definitions
+- **ai-agents**: Offers database access tools for AI agents
 
-# Run tests
-pnpm test
-
-# Run tests in watch mode
-pnpm test:watch
-
-# Build the package
-pnpm build
-
-# Lint the code
-pnpm lint
-
-# Format the code
-pnpm format
-```
-
-## Contributing
-
-Please read our [Contributing Guide](./CONTRIBUTING.md) to learn about our development process and how to propose bugfixes and improvements.
-
-## License
-
-MIT © [AI Primitives](https://mdx.org.ai)
+## API Reference
+[API documentation link]
 
 ## Dependencies
-
-This package uses the following key dependencies:
-
-- TypeScript for static typing
-- Vitest for testing
-- ESLint for linting
-- Prettier for code formatting
+Built on top of [mdxdb](https://github.com/ai-primitives/mdxdb) for robust document storage and vector search capabilities.
