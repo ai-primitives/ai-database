@@ -1,7 +1,11 @@
 import { AIDocument, AIVectorSearchOptions } from '../types';
 import { VectorSearchProvider } from '../types/vector';
 import { createOpenAI } from '@ai-sdk/openai';
-import type { EmbeddingModelV1, EmbeddingModelV1Embedding } from '@ai-sdk/provider';
+import type { EmbeddingModelV1 } from '@ai-sdk/provider';
+
+interface EmbeddingResult {
+  values: number[];
+}
 
 export class VectorSearch implements VectorSearchProvider {
   private embeddingModel: EmbeddingModelV1<string>;
@@ -58,10 +62,9 @@ export class VectorSearch implements VectorSearchProvider {
         values: [text],
         abortSignal: undefined,
       });
-      // Handle embedding values conversion by calling the values function
-      const embedding = result.embeddings[0];
-      const valuesIterator = embedding.values();
-      return Array.from(valuesIterator);
+      // Use double type assertion through unknown for safe type conversion
+      const embedding = result.embeddings[0] as unknown as { values: number[] };
+      return embedding.values;
     } catch (error) {
       throw new Error(`Embedding generation failed: ${error instanceof Error ? error.message : String(error)}`);
     }
