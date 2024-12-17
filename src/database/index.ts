@@ -1,16 +1,18 @@
 import { AIDocument, AIVectorSearchOptions } from '../types';
-import { DatabaseConfig } from '../types/database';
+import { DatabaseConfig, DatabaseProvider } from '../types/database';
 
 /**
  * AI-native database implementation with vector search capabilities
  */
 export class Database {
   private documents: Map<string, AIDocument>;
-  private vectorSearch: any; // Will be implemented in vector search PR
-  private aiClient: any; // Will be implemented in AI integration PR
+  private vectorSearch: DatabaseProvider | null;
+  private aiClient: DatabaseProvider | null;
 
   constructor(private config: DatabaseConfig) {
     this.documents = new Map();
+    this.vectorSearch = null; // Will be implemented in vector search PR
+    this.aiClient = null; // Will be implemented in AI integration PR
   }
 
   /**
