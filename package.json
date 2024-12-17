@@ -24,5 +24,9 @@
     "prettier": "^3.0.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "ai": "^2.0.0",
+    "@ai-sdk/openai": "^1.0.0"
   }
 }
