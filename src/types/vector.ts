@@ -1,19 +1,14 @@
-import type { VectorSearchOptions } from './mdxdb/types'
-import type { EmbeddingOptions, EmbeddingProvider } from './mdxdb/embedding'
+import { AIDocument } from './document';
 
-export interface AIVectorSearchOptions extends VectorSearchOptions {
-  rerank?: boolean
-  hybridWeight?: number
-  contextWindow?: number
+export interface AIVectorSearchOptions {
+  filter?: Record<string, unknown>;
+  limit?: number;
+  model?: string;
+  minScore?: number;
+  hybridWeight?: number;
 }
 
-export interface AIEmbeddingOptions extends EmbeddingOptions {
-  provider?: string
-  batchSize?: number
-  normalize?: boolean
-}
-
-export interface AIEmbeddingProvider extends EmbeddingProvider {
-  batchEmbed?(texts: string[], options?: AIEmbeddingOptions): Promise<number[][]>
-  normalize?(vector: number[]): number[]
+export interface VectorSearchProvider {
+  search(query: string, options: AIVectorSearchOptions): Promise<AIDocument[]>;
+  generateEmbeddings(text: string, model?: string): Promise<number[]>;
 }
