@@ -1,48 +1,115 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { VectorSearch } from '../index';
 import { AIDocument } from '../../types';
 import { createOpenAI } from '@ai-sdk/openai';
+import type { EmbeddingModelV1, EmbeddingModelV1Embedding, LanguageModelV1 } from '@ai-sdk/provider';
+import type { OpenAIProvider } from '@ai-sdk/openai';
 
 // Mock the OpenAI client
-vi.mock('@ai-sdk/openai', () => ({
-  createOpenAI: vi.fn(() => ({
-    textEmbeddingModel: () => ({
+vi.mock('@ai-sdk/openai', () => {
+  const mockDoEmbed = vi.fn().mockImplementation(async ({ values }: { values: string[] }) => ({
+    embeddings: values.map(() => ({ values: [0.1, 0.2, 0.3] })),
+    usage: { tokens: 10 },
+    rawResponse: { headers: {} }
+  }));
+
+  const mockModel: LanguageModelV1 = {
+    specificationVersion: 'v1',
+    provider: 'openai',
+    modelId: 'gpt-3.5-turbo-instruct',
+    defaultObjectGenerationMode: undefined,
+    doGenerate: vi.fn().mockResolvedValue({
+      text: 'mocked response',
+      usage: { tokens: 10 },
+      rawResponse: { headers: {} }
+    }),
+    doStream: vi.fn(),
+  };
+
+  const mockEmbeddingModel: EmbeddingModelV1<string> = {
+    specificationVersion: 'v1',
+    provider: 'openai',
+    modelId: 'text-embedding-3-small',
+    maxEmbeddingsPerCall: 100,
+    supportsParallelCalls: true,
+    doEmbed: mockDoEmbed,
+  };
+
+  const createMockProvider = () => {
+    const provider = {
+      textEmbeddingModel: () => mockEmbeddingModel,
+      textEmbedding: () => mockEmbeddingModel,
+      languageModel: () => mockModel,
+      chat: () => mockModel,
+      completion: () => mockModel,
+      embedding: () => mockEmbeddingModel,
+      image: vi.fn(),
+    };
+
+    return Object.assign(
+      (modelId: string) => mockModel,
+      provider
+    ) as unknown as OpenAIProvider;
+  };
+
+  return {
+    createOpenAI: vi.fn(() => createMockProvider()),
+  };
+});
+
+describe('VectorSearch', () => {
+  const mockApiKey = 'test-api-key';
+  let vectorSearch: VectorSearch;
+  let mockDoEmbed: Mock;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDoEmbed = vi.fn().mockImplementation(async ({ values }) => ({
+      embeddings: values.map(() => ({ values: [0.1, 0.2, 0.3] })),
+      usage: { tokens: 10 },
+      rawResponse: { headers: {} }
+    }));
+
+    const mockModel: LanguageModelV1 = {
+      specificationVersion: 'v1',
+      provider: 'openai',
+      modelId: 'gpt-3.5-turbo-instruct',
+      defaultObjectGenerationMode: undefined,
+      doGenerate: vi.fn().mockResolvedValue({
+        text: 'mocked response',
+        usage: { tokens: 10 },
+        rawResponse: { headers: {} }
+      }),
+      doStream: vi.fn(),
+    };
+
+    const mockEmbeddingModel: EmbeddingModelV1<string> = {
       specificationVersion: 'v1',
       provider: 'openai',
       modelId: 'text-embedding-3-small',
       maxEmbeddingsPerCall: 100,
       supportsParallelCalls: true,
-      doEmbed: vi.fn().mockImplementation(async () => ({
-        embeddings: [{ values: [0.1, 0.2, 0.3] }],
-        usage: { tokens: 10 },
-      })),
-    }),
-  })),
-}));
+      doEmbed: mockDoEmbed,
+    };
 
-describe('VectorSearch', () => {
-  const mockApiKey = 'test-api-key';
-  let vectorSearch: VectorSearch;
-  let mockDoEmbed: ReturnType<typeof vi.fn>;
+    const createMockProvider = () => {
+      const provider = {
+        textEmbeddingModel: () => mockEmbeddingModel,
+        textEmbedding: () => mockEmbeddingModel,
+        languageModel: () => mockModel,
+        chat: () => mockModel,
+        completion: () => mockModel,
+        embedding: () => mockEmbeddingModel,
+        image: vi.fn(),
+      };
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockDoEmbed = vi.fn().mockImplementation(async () => ({
-      embeddings: [{ values: [0.1, 0.2, 0.3] }],
-      usage: { tokens: 10 },
-    }));
+      return Object.assign(
+        (modelId: string) => mockModel,
+        provider
+      ) as unknown as OpenAIProvider;
+    };
 
-    vi.mocked(createOpenAI).mockImplementation(() => ({
-      textEmbeddingModel: () => ({
-        specificationVersion: 'v1',
-        provider: 'openai',
-        modelId: 'text-embedding-3-small',
-        maxEmbeddingsPerCall: 100,
-        supportsParallelCalls: true,
-        doEmbed: mockDoEmbed,
-      }),
-    }));
-
+    vi.mocked(createOpenAI).mockImplementation(() => createMockProvider());
     vectorSearch = new VectorSearch(mockApiKey);
   });
 
@@ -114,11 +181,23 @@ describe('VectorSearch', () => {
       { id: 'test-2', content: 'Test content 2', type: 'test', data: { key: 'value2' } },
     ];
 
-    // Mock different similarity scores
-    mockEmbeddingModel.doEmbed
-      .mockResolvedValueOnce({ embedding: [1, 0, 0] })
-      .mockResolvedValueOnce({ embedding: [0, 1, 0] })
-      .mockResolvedValueOnce({ embedding: [1, 0, 0] });
+    // Mock different similarity scores by returning different embeddings
+    mockDoEmbed
+      .mockImplementationOnce(async () => ({
+        embeddings: [{ values: [1, 0, 0] }],
+        usage: { tokens: 10 },
+        rawResponse: { headers: {} }
+      }))
+      .mockImplementationOnce(async () => ({
+        embeddings: [{ values: [0, 1, 0] }],
+        usage: { tokens: 10 },
+        rawResponse: { headers: {} }
+      }))
+      .mockImplementationOnce(async () => ({
+        embeddings: [{ values: [1, 0, 0] }],
+        usage: { tokens: 10 },
+        rawResponse: { headers: {} }
+      }));
 
     await Promise.all(mockDocuments.map(doc => vectorSearch.addDocument(doc)));
 
