@@ -1,5 +1,5 @@
-import { AIDocument, AIVectorSearchOptions, DatabaseConfig } from '../types';
-import { ai } from '@ai-sdk/openai';
+import { AIDocument, AIVectorSearchOptions } from '../types';
+import { DatabaseConfig } from '../types/database';
 
 /**
  * AI-native database implementation with vector search capabilities
@@ -7,6 +7,7 @@ import { ai } from '@ai-sdk/openai';
 export class Database {
   private documents: Map<string, AIDocument>;
   private vectorSearch: any; // Will be implemented in vector search PR
+  private aiClient: any; // Will be implemented in AI integration PR
 
   constructor(private config: DatabaseConfig) {
     this.documents = new Map();

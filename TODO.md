@@ -70,6 +70,13 @@
 - [ ] Add test coverage reporting
 - [ ] Set up automated npm publishing
 
+## Blockers
+
+- [ ] AI SDK Integration Issues
+  - [ ] Resolve import issues with AI SDK packages
+  - [ ] Verify correct package versions and exports
+  - [ ] Update documentation with proper import patterns
+
 ## Future Enhancements
 
 - [ ] Additional vector search providers

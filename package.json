@@ -26,7 +26,8 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "ai": "^2.0.0",
-    "@ai-sdk/openai": "^1.0.0"
+    "@ai-sdk/openai": "^1.0.8",
+    "ai": "^2.2.37",
+    "openai": "^4.76.3"
   }
 }
